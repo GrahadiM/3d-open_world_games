@@ -102,16 +102,14 @@ project-root/
 ## 📦 Catatan Rilis (Changelog)
 
 ### Version `1.0.3`
-- ✅ Selector kekuatan bawah tengah.
-- ✅ Panel skill di kanan bawah.
-- ✅ Sistem ON/OFF panel skill.
-- ✅ Combat sebagai kekuatan default.
-- ✅ 2 skill Combat.
-- ✅ 2 skill Melee dan Ranged.
-- ✅ 3 skill Fruit Power.
-- ✅ Sistem kepemilikan senjata.
-- ✅ Sistem kill counter untuk peluang drop.
-- ✅ Pencegahan duplikasi item.
+- Animasi pukulan dan tendangan.
+- Efek visual Super Punch.
+- Efek gelombang Knock Back.
+- Projectile Fire Ball.
+- Efek ledakan dan damage indicator.
+- Floating damage numbers.
+- Efek visual ketika musuh mati.
+- Optimalisasi particle effects untuk mobile.
 
 ---
 
