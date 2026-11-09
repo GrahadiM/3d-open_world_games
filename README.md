@@ -101,13 +101,13 @@ project-root/
 
 ## 📦 Catatan Rilis (Changelog)
 
-### Version `1.0.0`
-- ✅ Scene 3D berhasil dirender secara penuh.
-- ✅ Penambahan objek pulau dan efek laut.
-- ✅ Generasi pepohonan secara prosedural.
-- ✅ Implementasi awal *Third Person Camera*.
-- ✅ Sistem pencahayaan dinamis dan bayangan aktif.
-- ✅ Layout HUD dan integrasi lanskap dasar selesai.
+### Version `1.0.1`
+- ✅ Karakter 3D anime sederhana.
+- ✅ Gerakan berjalan dan berlari.
+- ✅ Rotasi karakter mengikuti arah gerakan.
+- ✅ Kamera third-person mengikuti player.
+- ✅ Jump dan gravitasi.
+- ✅ Collision dasar dengan batas pulau.
 
 ---
 
