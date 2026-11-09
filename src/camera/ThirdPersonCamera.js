@@ -1,40 +1,32 @@
-
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 
 export class ThirdPersonCamera {
   constructor(camera, player) {
     this.camera = camera;
     this.player = player;
 
-    this.offset = new THREE.Vector3(0, 5, -8);
-    this.lookOffset = new THREE.Vector3(0, 1.4, 0);
+    this.offset = new THREE.Vector3(0, 5, 8);
+    this.lookOffset = new THREE.Vector3(0, 1.3, 0);
+    this.followSpeed = 7;
 
-    this.camera.position.set(0, 5, 8);
-    this.camera.lookAt(0, 1, 0);
+    this.targetPosition = new THREE.Vector3();
+    this.lookTarget = new THREE.Vector3();
   }
 
   update(delta) {
-    const targetPosition = this.player.group.position;
-
-    const rotatedOffset = this.offset.clone()
-      .applyAxisAngle(
-        new THREE.Vector3(0, 1, 0),
-        this.player.group.rotation.y
-      );
-
-    const desiredPosition = targetPosition.clone()
-      .add(rotatedOffset);
-
-    const smoothing = 1 - Math.exp(-6 * delta);
+    this.targetPosition
+      .copy(this.player.group.position)
+      .add(this.offset);
 
     this.camera.position.lerp(
-      desiredPosition,
-      smoothing
+      this.targetPosition,
+      Math.min(1, this.followSpeed * delta)
     );
 
-    const lookTarget = targetPosition.clone()
+    this.lookTarget
+      .copy(this.player.group.position)
       .add(this.lookOffset);
 
-    this.camera.lookAt(lookTarget);
+    this.camera.lookAt(this.lookTarget);
   }
 }

@@ -1,115 +1,93 @@
-
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 
 export class Player {
   constructor(scene) {
     this.group = new THREE.Group();
+    this.group.position.set(0, 0, 0);
 
-    const skin = new THREE.MeshStandardMaterial({
-      color: 0xffc99b
-    });
-
-    const clothes = new THREE.MeshStandardMaterial({
-      color: 0x2875cf
-    });
-
-    const dark = new THREE.MeshStandardMaterial({
-      color: 0x25202c
-    });
+    const skin = new THREE.MeshStandardMaterial({ color: 0xffc89c });
+    const hair = new THREE.MeshStandardMaterial({ color: 0x25213d });
+    const outfit = new THREE.MeshStandardMaterial({ color: 0x2865c7 });
+    const dark = new THREE.MeshStandardMaterial({ color: 0x252b3a });
 
     // Badan
     const body = new THREE.Mesh(
-      new THREE.BoxGeometry(0.8, 1.1, 0.45),
-      clothes
+      new THREE.CapsuleGeometry(0.42, 0.65, 4, 8),
+      outfit
     );
-    body.position.y = 1.25;
+    body.position.y = 1.05;
+    body.castShadow = true;
+    this.group.add(body);
 
     // Kepala
     const head = new THREE.Mesh(
-      new THREE.SphereGeometry(0.38, 16, 16),
+      new THREE.SphereGeometry(0.38, 12, 10),
       skin
     );
-    head.position.y = 2.1;
+    head.position.y = 1.85;
+    head.castShadow = true;
+    this.group.add(head);
 
     // Rambut
-    const hair = new THREE.Mesh(
-      new THREE.SphereGeometry(0.4, 12, 10),
-      dark
+    const hairMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(0.4, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.55),
+      hair
     );
-    hair.scale.set(1, 0.65, 1);
-    hair.position.set(0, 2.32, -0.04);
-
-    // Mata sederhana
-    const eyeMaterial = new THREE.MeshStandardMaterial({
-      color: 0x171717
-    });
-
-    for (const x of [-0.13, 0.13]) {
-      const eye = new THREE.Mesh(
-        new THREE.SphereGeometry(0.035, 8, 8),
-        eyeMaterial
-      );
-      eye.position.set(x, 2.12, 0.345);
-      this.group.add(eye);
-    }
-
-    // Tangan
-    this.arms = [];
-
-    for (const x of [-0.53, 0.53]) {
-      const arm = new THREE.Mesh(
-        new THREE.BoxGeometry(0.22, 0.85, 0.25),
-        skin
-      );
-      arm.position.set(x, 1.3, 0);
-      this.group.add(arm);
-      this.arms.push(arm);
-    }
+    hairMesh.position.y = 2.02;
+    hairMesh.castShadow = true;
+    this.group.add(hairMesh);
 
     // Kaki
-    this.legs = [];
+    this.leftLeg = this.createLimb(dark, 0.16, 0.55);
+    this.leftLeg.position.set(-0.2, 0.35, 0);
+    this.group.add(this.leftLeg);
 
-    for (const x of [-0.22, 0.22]) {
-      const leg = new THREE.Mesh(
-        new THREE.BoxGeometry(0.27, 0.75, 0.3),
-        dark
-      );
-      leg.position.set(x, 0.38, 0);
-      this.group.add(leg);
-      this.legs.push(leg);
-    }
+    this.rightLeg = this.createLimb(dark, 0.16, 0.55);
+    this.rightLeg.position.set(0.2, 0.35, 0);
+    this.group.add(this.rightLeg);
 
-    this.group.add(body, head, hair);
+    // Tangan
+    this.leftArm = this.createLimb(skin, 0.13, 0.55);
+    this.leftArm.position.set(-0.52, 1.12, 0);
+    this.leftArm.rotation.z = 0.15;
+    this.group.add(this.leftArm);
 
-    this.group.traverse((object) => {
-      if (object.isMesh) {
-        object.castShadow = true;
-        object.receiveShadow = true;
-      }
-    });
+    this.rightArm = this.createLimb(skin, 0.13, 0.55);
+    this.rightArm.position.set(0.52, 1.12, 0);
+    this.rightArm.rotation.z = -0.15;
+    this.group.add(this.rightArm);
 
-    this.group.position.set(0, 0, 0);
     scene.add(this.group);
 
-    this.velocityY = 0;
-    this.isGrounded = true;
     this.isMoving = false;
+    this.walkTime = 0;
   }
 
-  updateAnimation(time) {
-    if (this.isMoving) {
-      const swing = Math.sin(time * 12) * 0.5;
-      this.legs[0].rotation.x = swing;
-      this.legs[1].rotation.x = -swing;
-      this.arms[0].rotation.x = -swing * 0.6;
-      this.arms[1].rotation.x = swing * 0.6;
+  createLimb(material, radius, length) {
+    const limb = new THREE.Mesh(
+      new THREE.CapsuleGeometry(radius, length, 3, 6),
+      material
+    );
+    limb.castShadow = true;
+    return limb;
+  }
+
+  updateAnimation(delta, moving) {
+    this.isMoving = moving;
+
+    if (moving) {
+      this.walkTime += delta * 9;
+      const swing = Math.sin(this.walkTime) * 0.55;
+
+      this.leftLeg.rotation.x = swing;
+      this.rightLeg.rotation.x = -swing;
+      this.leftArm.rotation.x = -swing * 0.7;
+      this.rightArm.rotation.x = swing * 0.7;
     } else {
-      this.legs.forEach((leg) => {
-        leg.rotation.x = 0;
-      });
-      this.arms.forEach((arm) => {
-        arm.rotation.x = 0;
-      });
+      this.leftLeg.rotation.x = 0;
+      this.rightLeg.rotation.x = 0;
+      this.leftArm.rotation.x = 0;
+      this.rightArm.rotation.x = 0;
     }
   }
 }

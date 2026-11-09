@@ -1,188 +1,159 @@
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 
 export class CharacterController {
-  constructor(player) {
+  constructor(player, camera, joystick, joystickStick) {
     this.player = player;
-
-    this.keys = {};
-    this.joystick = { x: 0, y: 0 };
+    this.camera = camera;
 
     this.speed = 7;
-    this.gravity = 20;
-    this.jumpPower = 8;
-    this.dashTime = 0;
+    this.jumpForce = 8;
+    this.gravity = 22;
+    this.verticalVelocity = 0;
+    this.grounded = true;
 
-    this.bindKeyboard();
-    this.bindJoystick();
-    this.bindButtons();
-  }
+    this.keys = {};
+    this.joystick = joystick;
+    this.joystickStick = joystickStick;
+    this.joystickInput = new THREE.Vector2();
 
-  bindKeyboard() {
-    window.addEventListener('keydown', (event) => {
-      this.keys[event.code] = true;
+    this.boundary = 22;
 
-      if (event.code === 'Space') {
-        this.jump();
-      }
-
-      if (event.code === 'ShiftLeft' || event.code === 'ShiftRight') {
-        this.dash();
-      }
+    window.addEventListener("keydown", (e) => {
+      this.keys[e.code] = true;
     });
 
-    window.addEventListener('keyup', (event) => {
-      this.keys[event.code] = false;
+    window.addEventListener("keyup", (e) => {
+      this.keys[e.code] = false;
+    });
+
+    this.bindJoystick();
+
+    document.getElementById("jump-button")?.addEventListener("click", () => {
+      this.jump();
     });
   }
 
   bindJoystick() {
-    const base = document.getElementById('joystick');
-    const stick = document.getElementById('joystick-stick');
-
-    if (!base || !stick) return;
+    if (!this.joystick || !this.joystickStick) return;
 
     let active = false;
-    let pointerId = null;
+    const maxDistance = 42;
 
-    const update = (event) => {
-      const rect = base.getBoundingClientRect();
+    const moveStick = (clientX, clientY) => {
+      const rect = this.joystick.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
 
-      let dx = event.clientX - centerX;
-      let dy = event.clientY - centerY;
+      let dx = clientX - centerX;
+      let dy = clientY - centerY;
 
-      const max = rect.width * 0.32;
       const length = Math.hypot(dx, dy);
-
-      if (length > max) {
-        dx = (dx / length) * max;
-        dy = (dy / length) * max;
+      if (length > maxDistance) {
+        dx = (dx / length) * maxDistance;
+        dy = (dy / length) * maxDistance;
       }
 
-      this.joystick.x = dx / max;
-      this.joystick.y = dy / max;
-
-      stick.style.transform =
+      this.joystickInput.set(dx / maxDistance, -dy / maxDistance);
+      this.joystickStick.style.transform =
         `translate(${dx}px, ${dy}px)`;
     };
 
-    base.addEventListener('pointerdown', (event) => {
-      active = true;
-      pointerId = event.pointerId;
-      base.setPointerCapture(pointerId);
-      update(event);
-    });
-
-    base.addEventListener('pointermove', (event) => {
-      if (active && event.pointerId === pointerId) {
-        update(event);
-      }
-    });
-
-    const release = (event) => {
-      if (!active || event.pointerId !== pointerId) return;
-
+    const stopStick = () => {
       active = false;
-      pointerId = null;
-      this.joystick.x = 0;
-      this.joystick.y = 0;
-      stick.style.transform = 'translate(0px, 0px)';
+      this.joystickInput.set(0, 0);
+      this.joystickStick.style.transform = "translate(0px, 0px)";
     };
 
-    base.addEventListener('pointerup', release);
-    base.addEventListener('pointercancel', release);
-  }
+    this.joystick.addEventListener("pointerdown", (e) => {
+      active = true;
+      this.joystick.setPointerCapture(e.pointerId);
+      moveStick(e.clientX, e.clientY);
+    });
 
-  bindButtons() {
-    document.getElementById('jump-button')
-      ?.addEventListener('click', () => this.jump());
+    this.joystick.addEventListener("pointermove", (e) => {
+      if (active) moveStick(e.clientX, e.clientY);
+    });
 
-    document.getElementById('dash-button')
-      ?.addEventListener('click', () => this.dash());
+    this.joystick.addEventListener("pointerup", stopStick);
+    this.joystick.addEventListener("pointercancel", stopStick);
+    this.joystick.addEventListener("lostpointercapture", stopStick);
   }
 
   jump() {
-    if (!this.player.isGrounded) return;
+    if (!this.grounded) return;
 
-    this.player.velocityY = this.jumpPower;
-    this.player.isGrounded = false;
-  }
-
-  dash() {
-    if (this.dashTime > 0) return;
-
-    this.dashTime = 0.18;
+    this.verticalVelocity = this.jumpForce;
+    this.grounded = false;
   }
 
   update(delta) {
-    const forward =
-      (this.keys.KeyW || this.keys.ArrowUp ? 1 : 0) -
-      (this.keys.KeyS || this.keys.ArrowDown ? 1 : 0) -
-      this.joystick.y;
+    const inputX =
+      (this.keys["KeyD"] || this.keys["ArrowRight"] ? 1 : 0) -
+      (this.keys["KeyA"] || this.keys["ArrowLeft"] ? 1 : 0) +
+      this.joystickInput.x;
 
-    const right =
-      (this.keys.KeyD || this.keys.ArrowRight ? 1 : 0) -
-      (this.keys.KeyA || this.keys.ArrowLeft ? 1 : 0) +
-      this.joystick.x;
+    const inputZ =
+      (this.keys["KeyS"] || this.keys["ArrowDown"] ? 1 : 0) -
+      (this.keys["KeyW"] || this.keys["ArrowUp"] ? 1 : 0) -
+      this.joystickInput.y;
 
-    const direction = { x: right, z: -forward };
-    const length = Math.hypot(direction.x, direction.z);
+    const input = new THREE.Vector3(inputX, 0, inputZ);
+    const moving = input.lengthSq() > 0.01;
 
-    this.player.isMoving = length > 0.08;
+    if (moving) {
+      input.normalize();
 
-    if (length > 1) {
-      direction.x /= length;
-      direction.z /= length;
-    }
+      // Gerakan mengikuti arah kamera, tetapi tetap pada bidang horizontal.
+      const forward = new THREE.Vector3();
+      this.camera.getWorldDirection(forward);
+      forward.y = 0;
+      forward.normalize();
 
-    let moveSpeed = this.speed;
+      const right = new THREE.Vector3()
+        .crossVectors(forward, new THREE.Vector3(0, 1, 0))
+        .normalize();
 
-    if (this.dashTime > 0) {
-      moveSpeed *= 2.5;
-      this.dashTime -= delta;
-    }
+      const direction = new THREE.Vector3()
+        .addScaledVector(right, input.x)
+        .addScaledVector(forward, -input.z)
+        .normalize();
 
-    const position = this.player.group.position;
-
-    if (length > 0.08) {
-      position.x += direction.x * moveSpeed * delta;
-      position.z += direction.z * moveSpeed * delta;
-
-      // Karakter menghadap arah gerakan
-      const targetRotation = Math.atan2(
-        direction.x,
-        direction.z
+      this.player.group.position.addScaledVector(
+        direction,
+        this.speed * delta
       );
 
-      let difference =
-        targetRotation - this.player.group.rotation.y;
-
-      difference = Math.atan2(
-        Math.sin(difference),
-        Math.cos(difference)
+      const targetAngle = Math.atan2(direction.x, direction.z);
+      this.player.group.rotation.y = THREE.MathUtils.lerp(
+        this.player.group.rotation.y,
+        targetAngle,
+        Math.min(1, delta * 12)
       );
-
-      this.player.group.rotation.y += difference *
-        Math.min(1, delta * 12);
     }
 
-    // Gravitasi dan lompat
-    this.player.velocityY -= this.gravity * delta;
-    position.y += this.player.velocityY * delta;
+    // Batas area pulau.
+    this.player.group.position.x = THREE.MathUtils.clamp(
+      this.player.group.position.x,
+      -this.boundary,
+      this.boundary
+    );
 
-    if (position.y <= 0) {
-      position.y = 0;
-      this.player.velocityY = 0;
-      this.player.isGrounded = true;
+    this.player.group.position.z = THREE.MathUtils.clamp(
+      this.player.group.position.z,
+      -this.boundary,
+      this.boundary
+    );
+
+    // Gravitasi dan lompat.
+    this.verticalVelocity -= this.gravity * delta;
+    this.player.group.position.y += this.verticalVelocity * delta;
+
+    if (this.player.group.position.y <= 0) {
+      this.player.group.position.y = 0;
+      this.verticalVelocity = 0;
+      this.grounded = true;
     }
 
-    // Batas area pulau
-    const maxRadius = 25;
-    const radius = Math.hypot(position.x, position.z);
-
-    if (radius > maxRadius) {
-      position.x *= maxRadius / radius;
-      position.z *= maxRadius / radius;
-    }
+    this.player.updateAnimation(delta, moving);
   }
 }

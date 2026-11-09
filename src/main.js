@@ -1,80 +1,101 @@
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { SceneManager } from "./engine/SceneManager.js";
+import { GameRenderer } from "./engine/Renderer.js";
+import { Player } from "./character/Player.js";
+import { CharacterController } from "./character/CharacterController.js";
+import { ThirdPersonCamera } from "./camera/ThirdPersonCamera.js";
 
-import { SceneManager } from './engine/SceneManager.js';
-import { GameRenderer } from './engine/Renderer.js';
-import { Player } from './character/Player.js';
-import { CharacterController } from './character/CharacterController.js';
-import { ThirdPersonCamera } from './camera/ThirdPersonCamera.js';
+// Scene dan renderer
+const sceneManager = new SceneManager();
+const scene = sceneManager.scene;
 
-// Inisialisasi dunia
-const world = new SceneManager();
+const canvas = document.getElementById("game-canvas");
+const gameRenderer = new GameRenderer(canvas);
 
 // Kamera
 const camera = new THREE.PerspectiveCamera(
   65,
   window.innerWidth / window.innerHeight,
   0.1,
-  500
+  300
 );
 
-// Renderer
-const canvas = document.getElementById('game-canvas');
-const gameRenderer = new GameRenderer(
-  canvas,
-  world.scene,
-  camera
+camera.position.set(0, 5, 8);
+
+// Pemain
+const player = new Player(scene);
+
+// Kontrol pemain
+const controller = new CharacterController(
+  player,
+  camera,
+  document.getElementById("joystick"),
+  document.getElementById("joystick-stick")
 );
 
-// Pemain dan kontrol
-const player = new Player(world.scene);
-const controller = new CharacterController(player);
+// Kamera third-person
 const followCamera = new ThirdPersonCamera(camera, player);
 
-// Clock untuk delta time
+// Pengaturan pause
+let paused = false;
+
+const pauseButton = document.getElementById("pause-button");
+const pauseScreen = document.getElementById("pause-screen");
+const resumeButton = document.getElementById("resume-button");
+const resetButton = document.getElementById("reset-button");
+
+function togglePause(value) {
+  paused = value;
+
+  if (pauseScreen) {
+    pauseScreen.classList.toggle("hidden", !paused);
+  }
+}
+
+pauseButton?.addEventListener("click", () => {
+  togglePause(!paused);
+});
+
+resumeButton?.addEventListener("click", () => {
+  togglePause(false);
+});
+
+resetButton?.addEventListener("click", () => {
+  player.group.position.set(0, 0, 0);
+  player.group.rotation.set(0, 0, 0);
+  controller.verticalVelocity = 0;
+  controller.grounded = true;
+  togglePause(false);
+});
+
+window.addEventListener("keydown", (e) => {
+  if (e.code === "Escape") {
+    togglePause(!paused);
+  }
+});
+
+// Resize layar
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  gameRenderer.resize();
+});
+
+// Game loop
 const clock = new THREE.Clock();
 
 function animate() {
   requestAnimationFrame(animate);
 
   const delta = Math.min(clock.getDelta(), 0.05);
-  const elapsed = clock.elapsedTime;
 
-  controller.update(delta);
-  player.updateAnimation(elapsed);
-  followCamera.update(delta);
+  if (!paused) {
+    controller.update(delta);
+    followCamera.update(delta);
+  }
 
-  gameRenderer.render();
+  gameRenderer.render(scene, camera);
 }
 
 animate();
-
-// Tombol pause sederhana
-let paused = false;
-
-document.getElementById('pause-button')
-  ?.addEventListener('click', () => {
-    paused = !paused;
-
-    const overlay = document.getElementById('pause-screen');
-    if (overlay) {
-      overlay.classList.toggle('hidden', !paused);
-    }
-  });
-
-// Reset posisi pemain
-document.getElementById('reset-button')
-  ?.addEventListener('click', () => {
-    player.group.position.set(0, 0, 0);
-    player.group.rotation.set(0, 0, 0);
-    player.velocityY = 0;
-    player.isGrounded = true;
-  });
-
-// Menghentikan simulasi saat pause
-const originalUpdate = controller.update.bind(controller);
-
-controller.update = (delta) => {
-  if (paused) return;
-  originalUpdate(delta);
-};
