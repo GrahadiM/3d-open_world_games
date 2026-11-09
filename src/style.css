@@ -388,3 +388,203 @@ body {
 #game-message {
     min-height: 35px;
 }
+
+/* =================================
+   ABILITY SELECTOR
+================================= */
+
+#ability-selector {
+    position: absolute;
+
+    bottom: 12px;
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    pointer-events: auto;
+    z-index: 5;
+}
+
+.ability-category {
+    position: relative;
+
+    min-width: 65px;
+    height: 55px;
+
+    padding: 5px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+
+    border: 1px solid #ffffff55;
+    border-radius: 10px;
+
+    background: #14283ddd;
+    color: white;
+
+    cursor: pointer;
+}
+
+.ability-category.selected {
+    border: 2px solid #68d5ff;
+    background: #28648d;
+    box-shadow: 0 0 12px #4bbdff77;
+}
+
+.ability-category:disabled {
+    opacity: 0.45;
+    filter: grayscale(1);
+    cursor: not-allowed;
+}
+
+.ability-icon {
+    font-size: 18px;
+}
+
+.ability-name {
+    font-size: 9px;
+    font-weight: bold;
+}
+
+.locked-label {
+    position: absolute;
+    top: -8px;
+    right: -4px;
+
+    padding: 2px 4px;
+
+    background: #873d45;
+    border-radius: 4px;
+
+    font-size: 7px;
+}
+
+/* =================================
+   SKILL PANEL
+================================= */
+
+#skill-panel {
+    position: absolute;
+
+    bottom: 88px;
+    right: 15px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+
+    padding: 10px;
+
+    background: #102033dd;
+    border: 1px solid #ffffff33;
+    border-radius: 12px;
+
+    pointer-events: auto;
+    z-index: 5;
+}
+
+#skill-panel.hidden {
+    display: none;
+}
+
+.skill-heading {
+    font-size: 11px;
+    font-weight: bold;
+    color: #8bdcff;
+}
+
+.skill-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.skill-button {
+    min-width: 145px;
+    min-height: 43px;
+
+    padding: 7px 9px;
+
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 3px;
+
+    align-items: center;
+
+    text-align: left;
+
+    color: white;
+    background: #294b68;
+
+    border: 1px solid #ffffff22;
+    border-radius: 8px;
+
+    cursor: pointer;
+}
+
+.skill-button kbd {
+    grid-column: 2;
+    grid-row: 1;
+
+    padding: 3px 6px;
+
+    background: #132538;
+    border-radius: 4px;
+
+    font-size: 10px;
+}
+
+.skill-button small {
+    font-size: 8px;
+    color: #b8d3e8;
+}
+
+.skill-button:active {
+    transform: scale(.96);
+    background: #397ba8;
+}
+
+/* =================================
+   LANDSCAPE MOBILE
+================================= */
+
+@media (max-width: 700px) {
+
+    #ability-selector {
+        bottom: 10px;
+        gap: 4px;
+    }
+
+    .ability-category {
+        min-width: 54px;
+        height: 48px;
+    }
+
+    .ability-icon {
+        font-size: 15px;
+    }
+
+    .ability-name {
+        font-size: 8px;
+    }
+
+    #skill-panel {
+        right: 10px;
+        bottom: 75px;
+
+        padding: 7px;
+    }
+
+    .skill-button {
+        min-width: 125px;
+        min-height: 39px;
+    }
+
+}

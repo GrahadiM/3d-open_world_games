@@ -9,8 +9,12 @@ import { CharacterController } from "./character/CharacterController.js";
 import { ThirdPersonCamera } from "./camera/ThirdPersonCamera.js";
 
 import { TrainingDummy } from "./entities/TrainingDummy.js";
-import { CombatManager } from "./combat/CombatManager.js";
 import { HUD } from "./ui/HUD.js";
+import { AbilityUI } from "./ui/AbilityUI.js";
+
+import { InventoryManager } from "./inventory/InventoryManager.js";
+import { DropManager } from "./progression/DropManager.js";
+import { AbilityManager } from "./abilities/AbilityManager.js";
 
 // =====================================
 // INITIALIZATION
@@ -19,8 +23,9 @@ import { HUD } from "./ui/HUD.js";
 const sceneManager = new SceneManager();
 const scene = sceneManager.scene;
 
-const canvas = document.getElementById("game-canvas");
-const gameRenderer = new GameRenderer(canvas);
+const gameRenderer = new GameRenderer(
+  document.getElementById("game-canvas")
+);
 
 const camera = new THREE.PerspectiveCamera(
   65,
@@ -72,49 +77,114 @@ hud.updateEnemy(100, 100, true);
 hud.updateKills(0);
 
 // =====================================
-// COMBAT
+// INVENTORY
 // =====================================
 
-const combat = new CombatManager(
-  player,
-  enemy,
+const inventory = new InventoryManager();
+
+// =====================================
+// DROP SYSTEM
+// =====================================
+
+const dropManager = new DropManager(
+  inventory,
   hud
 );
 
-// Keyboard controls
-window.addEventListener("keydown", (event) => {
-  if (event.repeat) return;
+// =====================================
+// ABILITY SYSTEM
+// =====================================
 
-  switch (event.code) {
-    case "KeyF":
-      combat.useSkill("basic");
-      break;
-
-    case "KeyZ":
-      combat.useSkill("super");
-      break;
-
-    case "KeyX":
-      combat.useSkill("knockback");
-      break;
-  }
-});
-
-// Mobile attack
-document
-  .getElementById("attack-button")
-  ?.addEventListener("click", () => {
-    combat.useSkill("basic");
-  });
+const abilityManager = new AbilityManager(
+  player,
+  enemy,
+  inventory,
+  hud
+);
 
 // =====================================
-// PAUSE SYSTEM
+// ABILITY UI
+// =====================================
+
+const abilityUI = new AbilityUI(
+  inventory,
+  abilityManager,
+  hud
+);
+
+// =====================================
+// KILL EVENT
+// =====================================
+
+abilityManager.onKill = () => {
+
+  const droppedItem = dropManager.onEnemyKilled();
+
+  hud.updateKills(
+    dropManager.getProgress().current
+  );
+
+  if (droppedItem) {
+    abilityUI.unlockRefresh();
+  }
+
+};
+
+// =====================================
+// KEYBOARD SKILL INPUT
+// =====================================
+
+window.addEventListener("keydown", (event) => {
+
+  if (event.repeat || paused) return;
+
+  const category = inventory.activeAbility;
+
+  if (!category) return;
+
+  const config = {
+    combat: [
+      { key: "KeyF", index: 0 },
+      { key: "KeyZ", index: 1 },
+      { key: "KeyX", index: 2 }
+    ],
+
+    melee: [
+      { key: "KeyF", index: 0 },
+      { key: "KeyZ", index: 1 }
+    ],
+
+    ranged: [
+      { key: "KeyF", index: 0 },
+      { key: "KeyZ", index: 1 }
+    ],
+
+    fruit: [
+      { key: "KeyF", index: 0 },
+      { key: "KeyZ", index: 1 },
+      { key: "KeyX", index: 2 }
+    ]
+  };
+
+  const skill = config[category]?.find(
+    item => item.key === event.code
+  );
+
+  if (skill) {
+    abilityManager.useSkill(
+      category,
+      skill.index
+    );
+  }
+
+});
+
+// =====================================
+// PAUSE
 // =====================================
 
 let paused = false;
 
-const pauseButton = document.getElementById("pause-button");
-const resumeButton = document.getElementById("resume-button");
 const pauseScreen = document.getElementById("pause-screen");
 
 function togglePause(value) {
@@ -122,13 +192,15 @@ function togglePause(value) {
   pauseScreen?.classList.toggle("hidden", !paused);
 }
 
-pauseButton?.addEventListener("click", () => {
-  togglePause(!paused);
-});
+document.getElementById("pause-button")
+  ?.addEventListener("click", () => {
+    togglePause(!paused);
+  });
 
-resumeButton?.addEventListener("click", () => {
-  togglePause(false);
-});
+document.getElementById("resume-button")
+  ?.addEventListener("click", () => {
+    togglePause(false);
+  });
 
 window.addEventListener("keydown", (event) => {
   if (event.code === "Escape") {
@@ -136,42 +208,20 @@ window.addEventListener("keydown", (event) => {
   }
 });
 
-// Reset
-document.getElementById("reset-button")
-  ?.addEventListener("click", () => {
-    player.group.position.set(0, 0, 0);
-    player.group.rotation.set(0, 0, 0);
-
-    controller.verticalVelocity = 0;
-    controller.grounded = true;
-
-    if (!enemy.alive) {
-      enemy.respawn();
-    } else {
-      enemy.hp = enemy.maxHP;
-      enemy.group.position.copy(enemy.spawnPosition);
-    }
-
-    combat.energy = combat.maxEnergy;
-    combat.kills = 0;
-
-    hud.updateKills(0);
-    hud.updateEnergy(100, 100);
-    hud.updateEnemy(100, 100, true);
-
-    togglePause(false);
-  });
-
 // =====================================
-// DASH SYSTEM
+// DASH
 // =====================================
 
 document.getElementById("dash-button")
   ?.addEventListener("click", () => {
 
+    if (paused) return;
+
     const forward = new THREE.Vector3(0, 0, -1);
 
-    forward.applyQuaternion(player.group.quaternion);
+    forward.applyQuaternion(
+      player.group.quaternion
+    );
 
     player.group.position.addScaledVector(
       forward,
@@ -181,14 +231,46 @@ document.getElementById("dash-button")
   });
 
 // =====================================
+// RESET
+// =====================================
+
+document.getElementById("reset-button")
+  ?.addEventListener("click", () => {
+
+    player.group.position.set(0, 0, 0);
+
+    controller.verticalVelocity = 0;
+    controller.grounded = true;
+
+    enemy.hp = enemy.maxHP;
+    enemy.alive = true;
+    enemy.group.visible = true;
+    enemy.group.position.copy(enemy.spawnPosition);
+
+    abilityManager.energy = 100;
+    dropManager.killCount = 0;
+
+    hud.updateEnemy(100, 100, true);
+    hud.updateEnergy(100, 100);
+    hud.updateKills(0);
+
+    togglePause(false);
+
+  });
+
+// =====================================
 // RESIZE
 // =====================================
 
 window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+
+  camera.aspect =
+    window.innerWidth / window.innerHeight;
+
   camera.updateProjectionMatrix();
 
   gameRenderer.resize();
+
 });
 
 // =====================================
@@ -198,30 +280,33 @@ window.addEventListener("resize", () => {
 const clock = new THREE.Clock();
 
 function animate() {
+
   requestAnimationFrame(animate);
 
-  const delta = Math.min(clock.getDelta(), 0.05);
+  const delta = Math.min(
+    clock.getDelta(),
+    0.05
+  );
 
   if (!paused) {
 
-    // Player movement
     controller.update(delta);
 
-    // Camera follow
     followCamera.update(delta);
 
-    // Enemy AI and regeneration
     enemy.update(
       delta,
       player.group.position
     );
 
-    // Combat energy and HUD
-    combat.update(delta);
+    abilityManager.update(delta);
 
   }
 
   gameRenderer.render(scene, camera);
+
 }
 
 animate();
+
+console.log("PROJECT AETHER BATCH 4 READY");
