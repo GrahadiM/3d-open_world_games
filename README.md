@@ -1,3 +1,8 @@
+# 3D Open World Games
+
+## Structure files
+
+```
 project-root/
 │
 ├── index.html
@@ -33,3 +38,4 @@ project-root/
     │
     └── ui/
         └── HUD.js
+```
