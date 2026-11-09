@@ -3,18 +3,30 @@ import { ABILITY_CONFIG } from "./AbilityConfig.js";
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 
 export class AbilityManager {
-  constructor(player, enemy, inventory, hud) {
+  constructor(
+    player,
+    enemy,
+    inventory,
+    hud,
+    vfx,
+    damageNumbers,
+    projectileManager,
+    combatAnimation
+  ) {
     this.player = player;
     this.enemy = enemy;
     this.inventory = inventory;
     this.hud = hud;
 
+    this.vfx = vfx;
+    this.damageNumbers = damageNumbers;
+    this.projectileManager = projectileManager;
+    this.combatAnimation = combatAnimation;
+
     this.energy = 100;
     this.maxEnergy = 100;
-
     this.lastUsed = {};
-
-    this.knockbackVelocity = new THREE.Vector3();
+    this.onKill = null;
   }
 
   useSkill(category, skillIndex) {
@@ -23,18 +35,14 @@ export class AbilityManager {
       return false;
     }
 
-    const config = ABILITY_CONFIG[category];
-    const skill = config?.skills[skillIndex];
+    const skill = ABILITY_CONFIG[category]?.skills[skillIndex];
 
     if (!skill) return false;
 
     const now = performance.now() / 1000;
-    const cooldownKey = `${category}_${skill.id}`;
+    const key = `${category}_${skill.id}`;
 
-    if (
-      now - (this.lastUsed[cooldownKey] ?? -Infinity)
-      < skill.cooldown
-    ) {
+    if (now - (this.lastUsed[key] ?? -Infinity) < skill.cooldown) {
       this.hud.showMessage("Skill masih cooldown!");
       return false;
     }
@@ -45,7 +53,7 @@ export class AbilityManager {
     }
 
     this.energy -= skill.energy;
-    this.lastUsed[cooldownKey] = now;
+    this.lastUsed[key] = now;
 
     this.attack(skill);
 
@@ -57,21 +65,46 @@ export class AbilityManager {
   attack(skill) {
     if (!this.enemy.alive) return;
 
-    const playerPosition = this.player.group.position;
-    const enemyPosition = this.enemy.group.position;
+    const origin = this.player.group.position;
+    const target = this.enemy.group.position;
 
-    const distance = playerPosition.distanceTo(enemyPosition);
+    const distance = origin.distanceTo(target);
 
     if (distance > skill.range) {
       this.hud.showMessage("Musuh terlalu jauh!");
       return;
     }
 
+    // Projectile attack
+    if (skill.projectile) {
+      this.combatAnimation.play("punch");
+
+      this.projectileManager.fire(
+        origin,
+        this.enemy,
+        skill.damage
+      );
+
+      const projectile =
+        this.projectileManager.projectiles.at(-1);
+
+      projectile.onKill = () => this.onKill?.();
+
+      this.hud.showMessage(`${skill.name} RELEASED!`);
+      return;
+    }
+
     const killed = this.enemy.takeDamage(skill.damage);
+
+    this.damageNumbers.show(
+      target.clone().add(new THREE.Vector3(0, 1, 0)),
+      skill.damage,
+      skill.knockback ? "#70d9ff" : "#ffffff"
+    );
 
     if (skill.knockback && this.enemy.alive) {
       const direction = new THREE.Vector3()
-        .subVectors(enemyPosition, playerPosition);
+        .subVectors(target, origin);
 
       direction.y = 0;
       direction.normalize();
@@ -80,7 +113,17 @@ export class AbilityManager {
         direction,
         skill.knockback
       );
+
+      this.vfx.createShockwave(target, 0x58caff);
+    } else if (categoryIsFruit(skill)) {
+      this.vfx.createExplosion(target, 0xff8b25);
+    } else {
+      this.vfx.createImpact(target, 0x70cfff);
     }
+
+    this.combatAnimation.play(
+      skill.damage >= 35 ? "heavy" : "punch"
+    );
 
     this.hud.showMessage(
       `${skill.name}: ${skill.damage} DAMAGE`
@@ -92,12 +135,8 @@ export class AbilityManager {
       this.enemy.alive
     );
 
-    if (killed && this.onKill) {
-      this.onKill();
-    }
+    if (killed) this.onKill?.();
   }
-
-  onKill = null;
 
   update(delta) {
     this.energy = Math.min(
@@ -110,4 +149,10 @@ export class AbilityManager {
       this.maxEnergy
     );
   }
+}
+
+function categoryIsFruit(skill) {
+  return skill.projectile ||
+    skill.id === "flamewave" ||
+    skill.id === "inferno";
 }

@@ -101,15 +101,15 @@ project-root/
 
 ## 📦 Catatan Rilis (Changelog)
 
-### Version `1.0.3`
-- Animasi pukulan dan tendangan.
-- Efek visual Super Punch.
-- Efek gelombang Knock Back.
-- Projectile Fire Ball.
-- Efek ledakan dan damage indicator.
-- Floating damage numbers.
-- Efek visual ketika musuh mati.
-- Optimalisasi particle effects untuk mobile.
+### Version `1.0.4`
+- ✅ Animasi pukulan dan tendangan.
+- ✅ Efek visual Super Punch.
+- ✅ Efek gelombang Knock Back.
+- ✅ Projectile Fire Ball.
+- ✅ Efek ledakan dan damage indicator.
+- ✅ Floating damage numbers.
+- ✅ Efek visual ketika musuh mati.
+- ✅ Optimalisasi particle effects untuk mobile.
 
 ---
 

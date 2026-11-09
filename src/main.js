@@ -16,6 +16,11 @@ import { InventoryManager } from "./inventory/InventoryManager.js";
 import { DropManager } from "./progression/DropManager.js";
 import { AbilityManager } from "./abilities/AbilityManager.js";
 
+import { VFXManager } from "./effects/VFXManager.js";
+import { DamageNumber } from "./effects/DamageNumber.js";
+import { ProjectileManager } from "./effects/Projectile.js";
+import { CombatAnimation } from "./animation/CombatAnimation.js";
+
 // =====================================
 // INITIALIZATION
 // =====================================
@@ -66,6 +71,22 @@ const enemy = new TrainingDummy(
 );
 
 // =====================================
+// VISUAL EFFECTS
+// =====================================
+
+const vfx = new VFXManager(scene);
+
+const damageNumbers = new DamageNumber(scene);
+
+const projectileManager = new ProjectileManager(
+  scene,
+  vfx,
+  damageNumbers
+);
+
+const combatAnimation = new CombatAnimation(player);
+
+// =====================================
 // HUD
 // =====================================
 
@@ -99,7 +120,11 @@ const abilityManager = new AbilityManager(
   player,
   enemy,
   inventory,
-  hud
+  hud,
+  vfx,
+  damageNumbers,
+  projectileManager,
+  combatAnimation
 );
 
 // =====================================
@@ -289,18 +314,17 @@ function animate() {
   );
 
   if (!paused) {
-
     controller.update(delta);
-
     followCamera.update(delta);
 
-    enemy.update(
-      delta,
-      player.group.position
-    );
+    enemy.update(delta, player.group.position);
 
     abilityManager.update(delta);
 
+    vfx.update(delta);
+    damageNumbers.update(delta);
+    projectileManager.update(delta);
+    combatAnimation.update(delta);
   }
 
   gameRenderer.render(scene, camera);
