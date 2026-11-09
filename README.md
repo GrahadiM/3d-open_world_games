@@ -2,7 +2,7 @@
 
 ## Structure files
 
-```
+```bash
 project-root/
 │
 ├── index.html
@@ -39,3 +39,18 @@ project-root/
     └── ui/
         └── HUD.js
 ```
+
+## Versi
+
+```bash
+1.0.0
+```
+
+## Catatan Fitur
+
+- Scene 3D berhasil dirender.
+- Pulau dan laut tampil.
+- Pepohonan dibuat secara prosedural.
+- Kamera menggunakan perspektif 3D.
+- Pencahayaan dan bayangan aktif.
+- Layout HUD dan landscape sudah tersedia.
