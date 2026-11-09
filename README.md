@@ -101,15 +101,17 @@ project-root/
 
 ## 📦 Catatan Rilis (Changelog)
 
-### Version `1.0.2`
-- ✅ Enemy 3D dengan AI sederhana.
-- ✅ Enemy mendekati player.
-- ✅ HP dan damage musuh.
-- ✅ Basic attack.
-- ✅ Dua skill Combat.
-- ✅ Kill counter.
-- ✅ Respawn musuh otomatis 3–5 detik.
-- ✅ Regenerasi HP musuh setelah 10 detik tanpa serangan.
+### Version `1.0.3`
+- ✅ Selector kekuatan bawah tengah.
+- ✅ Panel skill di kanan bawah.
+- ✅ Sistem ON/OFF panel skill.
+- ✅ Combat sebagai kekuatan default.
+- ✅ 2 skill Combat.
+- ✅ 2 skill Melee dan Ranged.
+- ✅ 3 skill Fruit Power.
+- ✅ Sistem kepemilikan senjata.
+- ✅ Sistem kill counter untuk peluang drop.
+- ✅ Pencegahan duplikasi item.
 
 ---
 
