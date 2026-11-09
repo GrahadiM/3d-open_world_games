@@ -101,13 +101,15 @@ project-root/
 
 ## 📦 Catatan Rilis (Changelog)
 
-### Version `1.0.1`
-- ✅ Karakter 3D anime sederhana.
-- ✅ Gerakan berjalan dan berlari.
-- ✅ Rotasi karakter mengikuti arah gerakan.
-- ✅ Kamera third-person mengikuti player.
-- ✅ Jump dan gravitasi.
-- ✅ Collision dasar dengan batas pulau.
+### Version `1.0.2`
+- ✅ Enemy 3D dengan AI sederhana.
+- ✅ Enemy mendekati player.
+- ✅ HP dan damage musuh.
+- ✅ Basic attack.
+- ✅ Dua skill Combat.
+- ✅ Kill counter.
+- ✅ Respawn musuh otomatis 3–5 detik.
+- ✅ Regenerasi HP musuh setelah 10 detik tanpa serangan.
 
 ---
 

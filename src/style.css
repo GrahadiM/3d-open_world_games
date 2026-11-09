@@ -367,3 +367,24 @@ body {
     }
 
 }
+
+/* Combat interaction */
+.action-buttons button {
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+}
+
+.action-buttons button:active {
+    transform: scale(0.92);
+    filter: brightness(1.3);
+}
+
+#attack-button {
+    box-shadow: 0 0 15px #e65d5d55;
+}
+
+#game-message {
+    min-height: 35px;
+}
