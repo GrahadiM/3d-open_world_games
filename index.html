@@ -1,0 +1,156 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width,
+        initial-scale=1.0,
+        maximum-scale=1.0,
+        user-scalable=no"
+    >
+
+    <meta name="theme-color" content="#101a29">
+
+    <title>Project Aether</title>
+
+    <link rel="stylesheet" href="./src/style.css">
+</head>
+
+<body>
+
+    <main id="game-container">
+
+        <!-- 3D GAME CANVAS -->
+        <canvas id="game-canvas"></canvas>
+
+        <!-- GAME HUD -->
+        <div id="game-hud">
+
+            <header class="top-hud">
+
+                <div class="game-logo">
+                    <h1>AETHER</h1>
+                    <small>ADVENTURE WORLD</small>
+                </div>
+
+                <div class="player-status">
+
+                    <div class="status-item">
+                        <span>HP</span>
+
+                        <div class="status-bar">
+                            <div id="player-hp"></div>
+                        </div>
+
+                        <b id="player-hp-text">100/100</b>
+                    </div>
+
+                    <div class="status-item">
+                        <span>ENERGY</span>
+
+                        <div class="status-bar energy">
+                            <div id="player-energy"></div>
+                        </div>
+
+                        <b id="player-energy-text">100/100</b>
+                    </div>
+
+                </div>
+
+                <div class="kill-counter">
+                    KILLS:
+                    <b id="kill-count">0</b>
+                </div>
+
+            </header>
+
+            <!-- LEFT INFORMATION -->
+            <section class="left-panel">
+
+                <div class="info-card">
+                    <small>LOCATION</small>
+                    <b>HAVEN ISLAND</b>
+                </div>
+
+                <div class="info-card">
+                    <small>ENEMY</small>
+                    <b id="enemy-status">TRAINING DUMMY</b>
+
+                    <div class="status-bar">
+                        <div id="enemy-hp"></div>
+                    </div>
+
+                    <small id="enemy-hp-text">100/100 HP</small>
+                </div>
+
+                <div id="game-message">
+                    Welcome to Project Aether!
+                </div>
+
+            </section>
+
+            <!-- GAME ACTIONS -->
+            <div class="top-actions">
+
+                <button id="pause-button">Ⅱ</button>
+
+                <button id="reset-button">↻</button>
+
+            </div>
+
+            <!-- MOBILE CONTROLS -->
+            <div class="mobile-controls">
+
+                <div id="joystick" class="joystick">
+                    <div id="joystick-stick"></div>
+                </div>
+
+                <div class="action-buttons">
+
+                    <button id="attack-button">
+                        ATK
+                    </button>
+
+                    <button id="dash-button">
+                        DASH
+                    </button>
+
+                    <button id="jump-button">
+                        JUMP
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="control-help">
+                WASD: Move | F: Attack | Q: Dash |
+                SPACE: Jump | Mouse: Camera
+            </div>
+
+        </div>
+
+        <!-- PAUSE MENU -->
+        <div id="pause-screen" class="hidden">
+
+            <div class="pause-content">
+
+                <h2>GAME PAUSED</h2>
+
+                <button id="resume-button">
+                    RESUME
+                </button>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <script type="module" src="./src/main.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,369 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    font-family: Arial, sans-serif;
+
+    background: #101a29;
+    color: white;
+}
+
+#game-container {
+    position: relative;
+
+    width: 100vw;
+    height: 100dvh;
+
+    overflow: hidden;
+    touch-action: none;
+}
+
+#game-canvas {
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    display: block;
+}
+
+/* HUD */
+
+#game-hud {
+    position: absolute;
+    inset: 0;
+
+    pointer-events: none;
+}
+
+.top-hud {
+    position: absolute;
+
+    top: 12px;
+    left: 15px;
+    right: 15px;
+
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.game-logo h1 {
+    font-size: 20px;
+    letter-spacing: 3px;
+}
+
+.game-logo small {
+    font-size: 9px;
+    color: #9eb3c9;
+}
+
+.player-status {
+    width: min(280px, 35vw);
+
+    display: grid;
+    gap: 7px;
+}
+
+.status-item {
+    display: grid;
+
+    grid-template-columns: 45px 1fr 55px;
+
+    align-items: center;
+    gap: 7px;
+
+    font-size: 10px;
+}
+
+.status-bar {
+    height: 7px;
+
+    background: #34475c;
+
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.status-bar div {
+    width: 100%;
+    height: 100%;
+
+    background: #ed626b;
+
+    transition: width .2s;
+}
+
+.status-bar.energy div {
+    background: #50c8e8;
+}
+
+.kill-counter {
+    margin-left: auto;
+    font-size: 12px;
+}
+
+/* LEFT PANEL */
+
+.left-panel {
+    position: absolute;
+
+    top: 85px;
+    left: 15px;
+
+    width: 160px;
+
+    display: grid;
+    gap: 8px;
+}
+
+.info-card {
+    padding: 10px;
+
+    display: grid;
+    gap: 5px;
+
+    background: #102033cc;
+
+    border: 1px solid #ffffff22;
+    border-radius: 9px;
+
+    font-size: 11px;
+}
+
+.info-card small {
+    font-size: 9px;
+    color: #a9bfd2;
+}
+
+#game-message {
+    padding: 9px;
+
+    font-size: 10px;
+    line-height: 1.4;
+
+    background: #102033cc;
+    border-radius: 8px;
+}
+
+/* TOP BUTTONS */
+
+.top-actions {
+    position: absolute;
+
+    top: 65px;
+    right: 15px;
+
+    display: flex;
+    gap: 7px;
+
+    pointer-events: auto;
+}
+
+.top-actions button {
+    width: 36px;
+    height: 36px;
+
+    border: 1px solid #ffffff33;
+    border-radius: 8px;
+
+    background: #14283dcc;
+    color: white;
+
+    font-size: 18px;
+}
+
+/* MOBILE CONTROLS */
+
+.mobile-controls {
+    position: absolute;
+
+    left: 15px;
+    right: 15px;
+    bottom: 25px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.joystick {
+    width: 90px;
+    height: 90px;
+
+    position: relative;
+
+    border-radius: 50%;
+    border: 1px solid #ffffff66;
+
+    background: #10203377;
+
+    pointer-events: auto;
+    touch-action: none;
+}
+
+#joystick-stick {
+    position: absolute;
+
+    width: 38px;
+    height: 38px;
+
+    top: 25px;
+    left: 25px;
+
+    border-radius: 50%;
+
+    background: #a9d7f0cc;
+    border: 1px solid white;
+}
+
+.action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    pointer-events: auto;
+}
+
+.action-buttons button {
+    width: 50px;
+    height: 50px;
+
+    border-radius: 50%;
+    border: 1px solid #ffffff55;
+
+    background: #24577cdd;
+    color: white;
+
+    font-size: 10px;
+    font-weight: bold;
+}
+
+#attack-button {
+    width: 60px;
+    height: 60px;
+
+    background: #a34e48dd;
+}
+
+/* HELP */
+
+.control-help {
+    position: absolute;
+
+    bottom: 5px;
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    white-space: nowrap;
+
+    font-size: 9px;
+    color: #d5e4f0aa;
+}
+
+/* PAUSE */
+
+#pause-screen {
+    position: absolute;
+    inset: 0;
+
+    z-index: 10;
+
+    display: grid;
+    place-items: center;
+
+    background: #07111dcc;
+}
+
+#pause-screen.hidden {
+    display: none;
+}
+
+.pause-content {
+    padding: 30px 45px;
+
+    text-align: center;
+
+    background: #1b3046;
+    border-radius: 14px;
+}
+
+.pause-content button {
+    margin-top: 15px;
+    padding: 10px 20px;
+
+    border: 0;
+    border-radius: 8px;
+
+    background: #398fc2;
+    color: white;
+}
+
+/* LANDSCAPE */
+
+@media (orientation: portrait) {
+
+    #game-container::after {
+        content: "Putar perangkat ke Landscape";
+
+        position: absolute;
+        inset: 0;
+
+        z-index: 20;
+
+        display: grid;
+        place-items: center;
+
+        padding: 30px;
+
+        text-align: center;
+
+        font-size: 18px;
+        font-weight: bold;
+
+        background: #101a29ee;
+    }
+
+}
+
+@media (max-height: 430px) {
+
+    .top-hud {
+        top: 7px;
+    }
+
+    .left-panel {
+        top: 65px;
+    }
+
+    .mobile-controls {
+        bottom: 15px;
+    }
+
+    .joystick {
+        width: 75px;
+        height: 75px;
+    }
+
+    #joystick-stick {
+        top: 18px;
+        left: 18px;
+    }
+
+    .control-help {
+        display: none;
+    }
+
+}
