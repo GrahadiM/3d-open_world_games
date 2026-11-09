@@ -1,246 +1,80 @@
 
-import * as THREE from
-    "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
-// ========================================
-// PROJECT AETHER
-// MAIN ENTRY POINT
-// ========================================
+import { SceneManager } from './engine/SceneManager.js';
+import { GameRenderer } from './engine/Renderer.js';
+import { Player } from './character/Player.js';
+import { CharacterController } from './character/CharacterController.js';
+import { ThirdPersonCamera } from './camera/ThirdPersonCamera.js';
 
-const canvas = document.getElementById("game-canvas");
+// Inisialisasi dunia
+const world = new SceneManager();
 
-// ========================================
-// SCENE
-// ========================================
-
-const scene = new THREE.Scene();
-
-scene.background = new THREE.Color(0x86c8df);
-
-scene.fog = new THREE.Fog(
-    0x86c8df,
-    35,
-    100
-);
-
-// ========================================
-// CAMERA
-// ========================================
-
+// Kamera
 const camera = new THREE.PerspectiveCamera(
-    60,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    200
+  65,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  500
 );
 
-camera.position.set(0, 6, 12);
-
-camera.lookAt(0, 0, 0);
-
-// ========================================
-// RENDERER
-// ========================================
-
-const renderer = new THREE.WebGLRenderer({
-    canvas: canvas,
-    antialias: true,
-    powerPreference: "high-performance"
-});
-
-renderer.setSize(
-    window.innerWidth,
-    window.innerHeight
+// Renderer
+const canvas = document.getElementById('game-canvas');
+const gameRenderer = new GameRenderer(
+  canvas,
+  world.scene,
+  camera
 );
 
-renderer.setPixelRatio(
-    Math.min(window.devicePixelRatio, 1.5)
-);
+// Pemain dan kontrol
+const player = new Player(world.scene);
+const controller = new CharacterController(player);
+const followCamera = new ThirdPersonCamera(camera, player);
 
-renderer.shadowMap.enabled = true;
-
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-// ========================================
-// LIGHTING
-// ========================================
-
-const ambientLight = new THREE.HemisphereLight(
-    0xd8f1ff,
-    0x526a4a,
-    2
-);
-
-scene.add(ambientLight);
-
-const directionalLight = new THREE.DirectionalLight(
-    0xffffff,
-    2
-);
-
-directionalLight.position.set(12, 20, 10);
-
-directionalLight.castShadow = true;
-
-directionalLight.shadow.mapSize.set(1024, 1024);
-
-scene.add(directionalLight);
-
-// ========================================
-// MATERIALS
-// ========================================
-
-const createMaterial = (color) => {
-
-    return new THREE.MeshStandardMaterial({
-        color: color,
-        roughness: 0.85
-    });
-
-};
-
-// ========================================
-// ENVIRONMENT
-// ========================================
-
-// Main Island
-
-const islandGeometry = new THREE.CylinderGeometry(
-    23,
-    25,
-    2,
-    48
-);
-
-const island = new THREE.Mesh(
-    islandGeometry,
-    createMaterial(0x60996a)
-);
-
-island.position.y = -1;
-
-island.receiveShadow = true;
-
-scene.add(island);
-
-// Sand Border
-
-const sand = new THREE.Mesh(
-    new THREE.CylinderGeometry(
-        25,
-        26,
-        0.5,
-        48
-    ),
-    createMaterial(0xcbb982)
-);
-
-sand.position.y = -1.8;
-
-scene.add(sand);
-
-// Ocean
-
-const ocean = new THREE.Mesh(
-    new THREE.PlaneGeometry(200, 200),
-    createMaterial(0x267da5)
-);
-
-ocean.rotation.x = -Math.PI / 2;
-
-ocean.position.y = -2.1;
-
-scene.add(ocean);
-
-// ========================================
-// TREES
-// ========================================
-
-function createTree(x, z) {
-
-    const trunk = new THREE.Mesh(
-        new THREE.CylinderGeometry(
-            0.16,
-            0.25,
-            1.8,
-            6
-        ),
-        createMaterial(0x68472f)
-    );
-
-    trunk.position.set(x, 0, z);
-
-    trunk.castShadow = true;
-
-    scene.add(trunk);
-
-    const leaves = new THREE.Mesh(
-        new THREE.ConeGeometry(
-            1.15,
-            2.5,
-            7
-        ),
-        createMaterial(0x2c7950)
-    );
-
-    leaves.position.set(x, 1.8, z);
-
-    leaves.castShadow = true;
-
-    scene.add(leaves);
-
-}
-
-// Generate Island Trees
-
-for (let i = 0; i < 30; i++) {
-
-    const angle = Math.random() * Math.PI * 2;
-
-    const radius = 8 + Math.random() * 13;
-
-    const x = Math.cos(angle) * radius;
-
-    const z = Math.sin(angle) * radius;
-
-    createTree(x, z);
-
-}
-
-// ========================================
-// ANIMATION LOOP
-// ========================================
+// Clock untuk delta time
+const clock = new THREE.Clock();
 
 function animate() {
+  requestAnimationFrame(animate);
 
-    requestAnimationFrame(animate);
+  const delta = Math.min(clock.getDelta(), 0.05);
+  const elapsed = clock.elapsedTime;
 
-    renderer.render(scene, camera);
+  controller.update(delta);
+  player.updateAnimation(elapsed);
+  followCamera.update(delta);
 
+  gameRenderer.render();
 }
 
 animate();
 
-// ========================================
-// RESPONSIVE RESIZE
-// ========================================
+// Tombol pause sederhana
+let paused = false;
 
-window.addEventListener("resize", () => {
+document.getElementById('pause-button')
+  ?.addEventListener('click', () => {
+    paused = !paused;
 
-    camera.aspect =
-        window.innerWidth / window.innerHeight;
+    const overlay = document.getElementById('pause-screen');
+    if (overlay) {
+      overlay.classList.toggle('hidden', !paused);
+    }
+  });
 
-    camera.updateProjectionMatrix();
+// Reset posisi pemain
+document.getElementById('reset-button')
+  ?.addEventListener('click', () => {
+    player.group.position.set(0, 0, 0);
+    player.group.rotation.set(0, 0, 0);
+    player.velocityY = 0;
+    player.isGrounded = true;
+  });
 
-    renderer.setSize(
-        window.innerWidth,
-        window.innerHeight
-    );
+// Menghentikan simulasi saat pause
+const originalUpdate = controller.update.bind(controller);
 
-    renderer.setPixelRatio(
-        Math.min(window.devicePixelRatio, 1.5)
-    );
-
-});
-
-console.log("Project Aether initialized successfully!");
+controller.update = (delta) => {
+  if (paused) return;
+  originalUpdate(delta);
+};
